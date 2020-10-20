@@ -23,7 +23,7 @@ public class EchoServer {
 			Socket socket = serverSocket.accept();
 			InputStream socketInputStream = socket.getInputStream();
 			OutputStream socketOutputStream = socket.getOutputStream();
-			executor.submit(new readClient(socketOutputStream, socketInputStream));
+			executor.submit(new readClient(socket, socketOutputStream, socketInputStream));
 			executor.shutdown();
 //			readClient client = new readClient(socket, socketOutputStream, socketInputStream);
 //			Thread thread = new Thread(client);
@@ -39,9 +39,11 @@ public class EchoServer {
 	}
 
 	public static class readClient implements Runnable {
+		Socket socket;
 		OutputStream out;
 		InputStream in;
-		readClient(OutputStream out, InputStream in) {
+		readClient(Socket socket, OutputStream out, InputStream in) {
+			this.socket = socket;
 			this.out = out;
 			this.in = in;
 		}
@@ -51,6 +53,8 @@ public class EchoServer {
 				while ((n = in.read()) != -1) {
 					out.write(n);
 				}
+				socket.shutdownOutput();
+				socket.shutdownInput();
 			} catch(IOException ioe) {
 				System.out.println("We caught an unexpected exception");
 			}
